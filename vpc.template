@@ -1,0 +1,832 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "OTX: A VPC with multiple subnets split into different AZs",
+  "Parameters": {
+    "Environment": {
+      "Description": "The environment key (prod, ci, etc.)",
+      "Type": "String"
+    },
+    "Application": {
+      "Description": "The application key",
+      "Type": "String"
+    },
+    "KeyName": {
+      "Description": "SSH keypair name",
+      "Type": "AWS::EC2::KeyPair::KeyName"
+    },
+    "Domain": {
+      "Description": "The domain for the bastion host's DNS entry",
+      "Type": "String"
+    },
+    "DatadogKey": {
+      "Description": "The datadog API key",
+      "Type": "String"
+    }
+  },
+  "Mappings": {
+    "EC2RegionMap": {
+      "ap-northeast-1": {
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-56d4ad31"
+      },
+      "ap-northeast-2": {
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-dac312b4"
+      },
+      "ap-south-1": {
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-f9daac96"
+      },
+      "ap-southeast-1": {
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-dc9339bf"
+      },
+      "ap-southeast-2": {
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-1c47407f"
+      },
+      "ca-central-1": {
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-ebed508f"
+      },
+      "eu-central-1": {
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-af0fc0c0"
+      },
+      "eu-west-1": {
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-70edb016"
+      },
+      "eu-west-2": {
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-f1949e95"
+      },
+      "sa-east-1": {
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-80086dec"
+      },
+      "us-east-1": {
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-0b33d91d"
+      },
+      "us-east-2": {
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-c55673a0"
+      },
+      "us-west-1": {
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-165a0876"
+      },
+      "us-west-2": {
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-f173cc91"
+      }
+    }
+  },
+  "Resources": {
+    "SecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "Environment"
+              },
+              "-",
+              {
+                "Ref": "Application"
+              },
+              "-bastion"
+            ]
+          ]
+        },
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "FromPort": 22,
+            "IpProtocol": "tcp",
+            "ToPort": 22
+          }
+        ]
+      }
+    },
+    "Bastion": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId": {
+          "Fn::FindInMap": [
+            "EC2RegionMap",
+            {
+              "Ref": "AWS::Region"
+            },
+            "AmazonLinuxAMIHVMEBSBacked64bit"
+          ]
+        },
+        "InstanceType": "t2.nano",
+        "KeyName": {
+          "Ref": "KeyName"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "Environment"
+                  },
+                  "-",
+                  {
+                    "Ref": "Application"
+                  },
+                  "-bastion"
+                ]
+              ]
+            }
+          }
+        ],
+        "NetworkInterfaces": [
+          {
+            "AssociatePublicIpAddress": "true",
+            "DeviceIndex": "0",
+            "GroupSet": [
+              {
+                "Ref": "SecurityGroup"
+              }
+            ],
+            "SubnetId": {
+              "Ref": "SubnetAPub"
+            }
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash -xe\n",
+                "# Version 1.0\n",
+                "yum -y install aws-cfn-bootstrap aws-cli jq\n",
+                "yum -y update\n",
+                "DD_API_KEY=",
+                {
+                  "Ref": "DatadogKey"
+                },
+                "if [[ '${DatadogKey:=}' != '']];then \n",
+                " bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"\n",
+                "fi\n"
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "VPC": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "10.0.0.0/16",
+        "EnableDnsSupport": "true",
+        "EnableDnsHostnames": "true",
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "AWS::StackId"
+            }
+          },
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "Environment"
+                  },
+                  "-",
+                  {
+                    "Ref": "Application"
+                  }
+                ]
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "SubnetAPriv": {
+      "Type": "AWS::EC2::Subnet",
+      "Description": "AZ A Private",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": "10.0.0.0/19",
+        "AvailabilityZone": {
+          "Fn::Select": [
+            "0",
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "AWS::StackId"
+            }
+          },
+          {
+            "Key": "Name",
+            "Value": "A Priv"
+          }
+        ]
+      }
+    },
+    "SubnetAPub": {
+      "Type": "AWS::EC2::Subnet",
+      "Description": "AZ A Public",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": "10.0.32.0/20",
+        "AvailabilityZone": {
+          "Fn::Select": [
+            "0",
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "AWS::StackId"
+            }
+          },
+          {
+            "Key": "Name",
+            "Value": "A Pub"
+          }
+        ]
+      }
+    },
+    "SubnetBPriv": {
+      "Type": "AWS::EC2::Subnet",
+      "Description": "AZ B Private",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": "10.0.64.0/19",
+        "AvailabilityZone": {
+          "Fn::Select": [
+            "1",
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "AWS::StackId"
+            }
+          },
+          {
+            "Key": "Name",
+            "Value": "B Priv"
+          }
+        ]
+      }
+    },
+    "SubnetBPub": {
+      "Type": "AWS::EC2::Subnet",
+      "Description": "AZ B Public",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": "10.0.96.0/20",
+        "AvailabilityZone": {
+          "Fn::Select": [
+            "1",
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "AWS::StackId"
+            }
+          },
+          {
+            "Key": "Name",
+            "Value": "B Pub"
+          }
+        ]
+      }
+    },
+    "SubnetCPriv": {
+      "Type": "AWS::EC2::Subnet",
+      "Description": "AZ C Private",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": "10.0.128.0/19",
+        "AvailabilityZone": {
+          "Fn::Select": [
+            "2",
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "AWS::StackId"
+            }
+          },
+          {
+            "Key": "Name",
+            "Value": "C Priv"
+          }
+        ]
+      }
+    },
+    "SubnetCPub": {
+      "Type": "AWS::EC2::Subnet",
+      "Description": "AZ C Public",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": "10.0.160.0/20",
+        "AvailabilityZone": {
+          "Fn::Select": [
+            "2",
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "AWS::StackId"
+            }
+          },
+          {
+            "Key": "Name",
+            "Value": "C Pub"
+          }
+        ]
+      }
+    },
+    "InternetGateway": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "AWS::StackId"
+            }
+          }
+        ]
+      }
+    },
+    "AttachGateway": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "InternetGatewayId": {
+          "Ref": "InternetGateway"
+        }
+      }
+    },
+    "RouteTablePriv": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "AWS::StackId"
+            }
+          }
+        ]
+      }
+    },
+    "RouteTablePub": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "AWS::StackId"
+            }
+          }
+        ]
+      }
+    },
+    "RouteIG": {
+      "Type": "AWS::EC2::Route",
+      "DependsOn": "AttachGateway",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "RouteTablePub"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "InternetGateway"
+        }
+      }
+    },
+    "SubnetRouteTableAssociationAPriv": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "SubnetAPriv"
+        },
+        "RouteTableId": {
+          "Ref": "RouteTablePriv"
+        }
+      }
+    },
+    "SubnetRouteTableAssociationAPub": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "SubnetAPub"
+        },
+        "RouteTableId": {
+          "Ref": "RouteTablePub"
+        }
+      }
+    },
+    "SubnetRouteTableAssociationBPriv": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "SubnetBPriv"
+        },
+        "RouteTableId": {
+          "Ref": "RouteTablePriv"
+        }
+      }
+    },
+    "SubnetRouteTableAssociationBPub": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "SubnetBPub"
+        },
+        "RouteTableId": {
+          "Ref": "RouteTablePub"
+        }
+      }
+    },
+    "SubnetRouteTableAssociationCPriv": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "SubnetCPriv"
+        },
+        "RouteTableId": {
+          "Ref": "RouteTablePriv"
+        }
+      }
+    },
+    "SubnetRouteTableAssociationCPub": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "SubnetCPub"
+        },
+        "RouteTableId": {
+          "Ref": "RouteTablePub"
+        }
+      }
+    },
+    "NetworkAcl": {
+      "Type": "AWS::EC2::NetworkAcl",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "AWS::StackId"
+            }
+          }
+        ]
+      }
+    },
+    "NAT": {
+      "Type": "AWS::EC2::NatGateway",
+      "Properties": {
+        "AllocationId": {
+          "Fn::GetAtt": [
+            "EIP",
+            "AllocationId"
+          ]
+        },
+        "SubnetId": {
+          "Ref": "SubnetAPub"
+        }
+      }
+    },
+    "EIP": {
+      "Type": "AWS::EC2::EIP",
+      "Properties": {
+        "Domain": "vpc"
+      }
+    },
+    "Route": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "RouteTablePriv"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "NatGatewayId": {
+          "Ref": "NAT"
+        }
+      }
+    },
+    "primarydns": {
+      "Type": "AWS::Route53::RecordSet",
+      "Properties": {
+        "HostedZoneName": {
+          "Fn::Sub": "${Domain}."
+        },
+        "Name": {
+          "Fn::Sub": "${Environment}-${Application}-bastion.${Domain}."
+        },
+        "Type": "A",
+        "TTL": "900",
+        "ResourceRecords": [
+          {
+            "Fn::GetAtt": [
+              "Bastion",
+              "PublicIp"
+            ]
+          }
+        ]
+      }
+    },
+    "FlowLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "Environment"
+              },
+              "-",
+              {
+                "Ref": "Application"
+              },
+              "-vpc-flowlogs"
+            ]
+          ]
+        },
+        "RetentionInDays": "7"
+      }
+    },
+    "FlowLogRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "vpc-flow-logs.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "FlowLogRolePolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:DescribeLogGroups",
+                    "logs:DescribeLogStreams",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": [
+                    "arn:aws:logs:*:*:*"
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "VpcFlowLog": {
+      "Type": "AWS::EC2::FlowLog",
+      "Properties": {
+        "DeliverLogsPermissionArn": {
+          "Fn::GetAtt": [
+            "FlowLogRole",
+            "Arn"
+          ]
+        },
+        "LogGroupName": {
+          "Ref": "FlowLogGroup"
+        },
+        "ResourceId": {
+          "Ref": "VPC"
+        },
+        "ResourceType": "VPC",
+        "TrafficType": "ALL"
+      }
+    }
+  },
+  "Outputs": {
+    "BastionIP": {
+      "Value": {
+        "Fn::GetAtt": [
+          "Bastion",
+          "PublicIp"
+        ]
+      },
+      "Description": "Bastion's public IP addr.",
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-BastionIP"
+        }
+      }
+    },
+    "PrimaryDNS": {
+      "Value": {
+        "Fn::Sub": "${Environment}-${Application}-bastion.${Domain}"
+      },
+      "Description": "Primary DNS for stack",
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-PrimaryDNS"
+        }
+      }
+    },
+    "VPC": {
+      "Description": "VPC deployed by the template",
+      "Value": {
+        "Ref": "VPC"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-VPC"
+        }
+      }
+    },
+    "PublicSubnetList": {
+      "Description": "The public subnets deployed",
+      "Value": {
+        "Fn::Join": [
+          ",",
+          [
+            {
+              "Ref": "SubnetAPub"
+            },
+            {
+              "Ref": "SubnetBPub"
+            },
+            {
+              "Ref": "SubnetCPub"
+            }
+          ]
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-PublicSubnetList"
+        }
+      }
+    },
+    "SubnetAPub": {
+      "Description": "The public subnets deployed",
+      "Value": {
+        "Ref": "SubnetAPub"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-SubnetAPub"
+        }
+      }
+    },
+    "SubnetBPub": {
+      "Description": "The public subnets deployed",
+      "Value": {
+        "Ref": "SubnetBPub"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-SubnetBPub"
+        }
+      }
+    },
+    "SubnetCPub": {
+      "Description": "The public subnets deployed",
+      "Value": {
+        "Ref": "SubnetCPub"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-SubnetCPub"
+        }
+      }
+    },
+    "PrivateSubnetList": {
+      "Description": "The private subnets deployed",
+      "Value": {
+        "Fn::Join": [
+          ",",
+          [
+            {
+              "Ref": "SubnetAPriv"
+            },
+            {
+              "Ref": "SubnetBPriv"
+            },
+            {
+              "Ref": "SubnetCPriv"
+            }
+          ]
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-PrivateSubnetList"
+        }
+      }
+    },
+    "SubnetAPriv": {
+      "Description": "The public subnets deployed",
+      "Value": {
+        "Ref": "SubnetAPriv"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-SubnetAPriv"
+        }
+      }
+    },
+    "SubnetBPriv": {
+      "Description": "The public subnets deployed",
+      "Value": {
+        "Ref": "SubnetBPriv"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-SubnetBPriv"
+        }
+      }
+    },
+    "SubnetCPriv": {
+      "Description": "The public subnets deployed",
+      "Value": {
+        "Ref": "SubnetCPriv"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-SubnetCPriv"
+        }
+      }
+    }
+  }
+}

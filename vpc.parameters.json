@@ -1,0 +1,23 @@
+[
+  {
+    "ParameterKey": "Environment",
+    "ParameterValue": "${ENVIRONMENT}"
+  },
+  {
+    "ParameterKey": "Application",
+    "ParameterValue": "${APPLICATION}"
+  },
+  {
+    "ParameterKey": "KeyName",
+    "ParameterValue": "${KEY_NAME}"
+  },
+  {
+    "ParameterKey": "Domain",
+    "ParameterValue": "${DOMAIN}"
+  },
+  {
+    "ParameterKey": "DatadogKey",
+    "ParameterValue": "${DATADOG_KEY}"
+  }
+]
+

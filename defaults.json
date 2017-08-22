@@ -1,0 +1,6 @@
+{
+  "DOMAIN": {
+    "type":"template",
+    "template":"{DEFAULT_DOMAIN}"
+  }
+}
