@@ -1,6 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "OTX: A VPC with multiple subnets split into different AZs",
+  "Description": "A VPC with multiple subnets split into different AZs",
   "Parameters": {
     "Environment": {
       "Description": "The environment key (prod, ci, etc.)",
