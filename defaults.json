@@ -1,6 +1,6 @@
 {
   "DOMAIN": {
     "type":"template",
-    "value":"{DEFAULT_DOMAIN}"
+    "value":"${DEFAULT_DOMAIN}"
   }
 }
