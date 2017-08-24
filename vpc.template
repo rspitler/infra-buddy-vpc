@@ -3,15 +3,15 @@
   "Description": "A VPC with multiple subnets split into different AZs",
   "Parameters": {
     "Environment": {
-      "Description": "The environment key (prod, ci, etc.)",
+      "Description": "The environment this VPC will support.",
       "Type": "String"
     },
     "Application": {
-      "Description": "The application key",
+      "Description": "The application this VPC will support.",
       "Type": "String"
     },
     "KeyName": {
-      "Description": "SSH keypair name",
+      "Description": "SSH keypair name for access to the bastion host.",
       "Type": "AWS::EC2::KeyPair::KeyName"
     },
     "Domain": {
@@ -19,7 +19,7 @@
       "Type": "String"
     },
     "DatadogKey": {
-      "Description": "The datadog API key",
+      "Description": "The datadog API key for monitoring the bastion host.",
       "Type": "String"
     }
   },
@@ -685,7 +685,7 @@
           "PublicIp"
         ]
       },
-      "Description": "Bastion's public IP addr.",
+      "Description": "The public IP address of the bastion.",
       "Export": {
         "Name": {
           "Fn::Sub": "${AWS::StackName}-BastionIP"
@@ -696,7 +696,7 @@
       "Value": {
         "Fn::Sub": "${Environment}-${Application}-bastion.${Domain}"
       },
-      "Description": "Primary DNS for stack",
+      "Description": "The public DNS of the bastion host.",
       "Export": {
         "Name": {
           "Fn::Sub": "${AWS::StackName}-PrimaryDNS"
@@ -704,7 +704,7 @@
       }
     },
     "VPC": {
-      "Description": "VPC deployed by the template",
+      "Description": "The ARN of the created VPC.",
       "Value": {
         "Ref": "VPC"
       },
@@ -715,7 +715,7 @@
       }
     },
     "PublicSubnetList": {
-      "Description": "The public subnets deployed",
+      "Description": "A comma delimited list of public subnets in the VPC.",
       "Value": {
         "Fn::Join": [
           ",",
@@ -739,7 +739,7 @@
       }
     },
     "SubnetAPub": {
-      "Description": "The public subnets deployed",
+      "Description": "The subnet id of the public subnet - A.",
       "Value": {
         "Ref": "SubnetAPub"
       },
@@ -750,7 +750,7 @@
       }
     },
     "SubnetBPub": {
-      "Description": "The public subnets deployed",
+      "Description": "The subnet id of the public subnet - B.",
       "Value": {
         "Ref": "SubnetBPub"
       },
@@ -761,7 +761,7 @@
       }
     },
     "SubnetCPub": {
-      "Description": "The public subnets deployed",
+      "Description": "The subnet id of the public subnet - C.",
       "Value": {
         "Ref": "SubnetCPub"
       },
@@ -772,7 +772,7 @@
       }
     },
     "PrivateSubnetList": {
-      "Description": "The private subnets deployed",
+      "Description": "A comma delimited list of private subnets in the VPC.",
       "Value": {
         "Fn::Join": [
           ",",
@@ -796,7 +796,7 @@
       }
     },
     "SubnetAPriv": {
-      "Description": "The public subnets deployed",
+      "Description": "The subnet id of the private subnet - A.",
       "Value": {
         "Ref": "SubnetAPriv"
       },
@@ -807,7 +807,7 @@
       }
     },
     "SubnetBPriv": {
-      "Description": "The public subnets deployed",
+      "Description": "The subnet id of the private subnet - B.",
       "Value": {
         "Ref": "SubnetBPriv"
       },
@@ -818,7 +818,7 @@
       }
     },
     "SubnetCPriv": {
-      "Description": "The public subnets deployed",
+      "Description": "The subnet id of the private subnet - C.",
       "Value": {
         "Ref": "SubnetCPriv"
       },
