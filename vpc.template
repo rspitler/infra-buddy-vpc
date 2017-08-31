@@ -703,6 +703,28 @@
         }
       }
     },
+    "PrimaryDomain": {
+      "Value": {
+        "Fn::Sub": "${Domain}"
+      },
+      "Description": "The primary domain to use in this VPC.",
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-PrimaryDomain"
+        }
+      }
+    },
+    "PrimaryCertificateArn": {
+      "Value": {
+        "Fn::Sub": "${CertificateARN}"
+      },
+      "Description": "The certificate corresponding to the primary domain in this VPC.",
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-PrimaryCertificate"
+        }
+      }
+    },
     "VPC": {
       "Description": "The ARN of the created VPC.",
       "Value": {

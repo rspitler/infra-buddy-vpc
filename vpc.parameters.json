@@ -16,6 +16,10 @@
     "ParameterValue": "${DOMAIN}"
   },
   {
+    "ParameterKey": "CertificateARN",
+    "ParameterValue": "${CERTIFICATE_ARN}"
+  },
+  {
     "ParameterKey": "DatadogKey",
     "ParameterValue": "${DATADOG_KEY}"
   }
