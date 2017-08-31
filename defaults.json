@@ -1,10 +1,10 @@
 {
   "DOMAIN": {
     "type": "template",
-    "value": "${DEFAULT_DOMAIN}"
+    "value": "${DOMAIN}"
   },
   "CERTIFICATE_ARN": {
     "type": "template",
-    "value": "${DEFAULT_CERTIFICATE_ARN}"
+    "value": "${CERTIFICATE_ARN}"
   }
 }
