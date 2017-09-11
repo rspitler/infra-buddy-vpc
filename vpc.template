@@ -24,52 +24,160 @@
     }
   },
   "Mappings": {
-    "EC2RegionMap": {
+    "RegionMap": {
       "ap-northeast-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-56d4ad31"
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-56d4ad31",
+        "AWSAccount": "582318560864"
       },
       "ap-northeast-2": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-dac312b4"
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-dac312b4",
+        "AWSAccount": "600734575887"
       },
       "ap-south-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-f9daac96"
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-f9daac96",
+        "AWSAccount": "718504428378"
       },
       "ap-southeast-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-dc9339bf"
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-dc9339bf",
+        "AWSAccount": "114774131450"
       },
       "ap-southeast-2": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-1c47407f"
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-1c47407f",
+        "AWSAccount": "783225319266"
       },
       "ca-central-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-ebed508f"
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-ebed508f",
+        "AWSAccount": "985666609251"
       },
       "eu-central-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-af0fc0c0"
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-af0fc0c0",
+        "AWSAccount": "054676820928"
       },
       "eu-west-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-70edb016"
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-70edb016",
+        "AWSAccount": "156460612806"
       },
       "eu-west-2": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-f1949e95"
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-f1949e95",
+        "AWSAccount": "652711504416"
       },
       "sa-east-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-80086dec"
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-80086dec",
+        "AWSAccount": "507241528517"
       },
       "us-east-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-0b33d91d"
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-0b33d91d",
+        "AWSAccount": "127311923021"
       },
       "us-east-2": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-c55673a0"
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-c55673a0",
+        "AWSAccount": "033677994240"
       },
       "us-west-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-165a0876"
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-165a0876",
+        "AWSAccount": "027434742980"
       },
       "us-west-2": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-f173cc91"
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-f173dcc91",
+        "AWSAccount": "797873946194"
       }
     }
   },
   "Resources": {
+    "S3LoggingPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "ApplicationS3BucketLogs"
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:PutObject"
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:s3:::",
+                      {
+                        "Ref": "ApplicationS3BucketLogs"
+                      },
+                      "/*/prod/AWSLogs/*"
+                    ]
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:s3:::",
+                      {
+                        "Ref": "ApplicationS3BucketLogs"
+                      },
+                      "/*/ci/AWSLogs/*"
+                    ]
+                  ]
+                }
+              ],
+              "Principal": {
+                "AWS": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:iam::",
+                      {
+                        "Fn::FindInMap": [
+                          "RegionMap",
+                          {
+                            "Ref": "AWS::Region"
+                          },
+                          "AWSAccount"
+                        ]
+                      },
+                      ":root"
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "ApplicationS3BucketLogs": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "Application"
+              },
+              "-logs"
+            ]
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": {
+              "Ref": "Environment"
+            }
+          },
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "Application"
+            }
+          }
+        ]
+      }
+    },
     "SecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
@@ -106,7 +214,7 @@
       "Properties": {
         "ImageId": {
           "Fn::FindInMap": [
-            "EC2RegionMap",
+            "RegionMap",
             {
               "Ref": "AWS::Region"
             },
