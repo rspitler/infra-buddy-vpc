@@ -18,6 +18,10 @@
       "Description": "The domain for the bastion host's DNS entry",
       "Type": "String"
     },
+    "CertificateARN": {
+      "Description": "The ARN for the certificate",
+      "Type": "String"
+    },
     "DatadogKey": {
       "Description": "The datadog API key for monitoring the bastion host.",
       "Type": "String"
@@ -26,59 +30,59 @@
   "Mappings": {
     "RegionMap": {
       "ap-northeast-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-56d4ad31",
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-3bd3c45c",
         "AWSAccount": "582318560864"
       },
       "ap-northeast-2": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-dac312b4",
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-e21cc38c",
         "AWSAccount": "600734575887"
       },
       "ap-south-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-f9daac96",
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-10918173",
         "AWSAccount": "718504428378"
       },
       "ap-southeast-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-dc9339bf",
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-77af2014",
         "AWSAccount": "114774131450"
       },
       "ap-southeast-2": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-1c47407f",
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-47205e28",
         "AWSAccount": "783225319266"
       },
       "ca-central-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-ebed508f",
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-a7aa15c3",
         "AWSAccount": "985666609251"
       },
       "eu-central-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-af0fc0c0",
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-82be18ed",
         "AWSAccount": "054676820928"
       },
       "eu-west-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-70edb016",
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-d7b9a2b1",
         "AWSAccount": "156460612806"
       },
       "eu-west-2": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-f1949e95",
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-ed100689",
         "AWSAccount": "652711504416"
       },
       "sa-east-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-80086dec",
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-87dab1eb",
         "AWSAccount": "507241528517"
       },
       "us-east-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-0b33d91d",
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-a4c7edb2",
         "AWSAccount": "127311923021"
       },
       "us-east-2": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-c55673a0",
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-8a7859ef",
         "AWSAccount": "033677994240"
       },
       "us-west-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-165a0876",
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-327f5352",
         "AWSAccount": "027434742980"
       },
       "us-west-2": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-f173dcc91",
+        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-6df1e514",
         "AWSAccount": "797873946194"
       }
     }
