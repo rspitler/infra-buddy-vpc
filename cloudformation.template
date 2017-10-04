@@ -22,6 +22,14 @@
       "Description": "The ARN for the certificate",
       "Type": "String"
     },
+    "ExternalDomain": {
+      "Description": "The domain for external facing assets in this stack.",
+      "Type": "String"
+    },
+    "ExternalDomainCertificateARN": {
+      "Description": "The ARN for the certificate for the domain for external facing assets in this stack.",
+      "Type": "String"
+    },
     "DatadogKey": {
       "Description": "The datadog API key for monitoring the bastion host.",
       "Type": "String"
@@ -849,6 +857,28 @@
       "Export": {
         "Name": {
           "Fn::Sub": "${AWS::StackName}-PrimaryCertificate"
+        }
+      }
+    },
+    "ExternalDomain": {
+      "Value": {
+        "Fn::Sub": "${ExternalDomain}"
+      },
+      "Description": "The primary domain to use in this VPC.",
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-ExternalDomain"
+        }
+      }
+    },
+    "ExternalDomainCertificateArn": {
+      "Value": {
+        "Fn::Sub": "${ExternalDomainCertificateARN}"
+      },
+      "Description": "The certificate corresponding to the primary domain in this VPC.",
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-ExternalCertificate"
         }
       }
     },
