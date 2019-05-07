@@ -192,7 +192,7 @@
             "AmazonLinuxAMIHVMEBSBacked64bit"
           ]
         },
-        "InstanceType": "t2.nano",
+        "InstanceType": "t3.nano",
         "KeyName": {
           "Ref": "KeyName"
         },
