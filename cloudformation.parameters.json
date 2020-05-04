@@ -20,12 +20,20 @@
     "ParameterValue": "${CERTIFICATE_ARN}"
   },
   {
+    "ParameterKey": "CertificateARN",
+    "ParameterValue": "${CERTIFICATE_ARN2}"
+  },
+  {
     "ParameterKey": "ExternalDomain",
     "ParameterValue": "${EXTERNAL_DOMAIN}"
   },
   {
     "ParameterKey": "ExternalDomainCertificateARN",
     "ParameterValue": "${EXTERNAL_CERTIFICATE_ARN}"
+  },
+  {
+    "ParameterKey": "ExternalDomainCertificateARN",
+    "ParameterValue": "${EXTERNAL_CERTIFICATE_ARN2}"
   },
   {
     "ParameterKey": "DatadogKey",
