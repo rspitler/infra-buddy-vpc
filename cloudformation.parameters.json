@@ -20,7 +20,7 @@
     "ParameterValue": "${CERTIFICATE_ARN}"
   },
   {
-    "ParameterKey": "CertificateARN",
+    "ParameterKey": "CertificateARN2",
     "ParameterValue": "${CERTIFICATE_ARN2}"
   },
   {
@@ -32,7 +32,7 @@
     "ParameterValue": "${EXTERNAL_CERTIFICATE_ARN}"
   },
   {
-    "ParameterKey": "ExternalDomainCertificateARN",
+    "ParameterKey": "ExternalDomainCertificateARN2",
     "ParameterValue": "${EXTERNAL_CERTIFICATE_ARN2}"
   },
   {
