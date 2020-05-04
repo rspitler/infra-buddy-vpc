@@ -875,7 +875,7 @@
       "Description": "The certificate corresponding to the primary domain in this VPC.",
       "Export": {
         "Name": {
-          "Fn::Sub": "${AWS::StackName}-PrimaryCertificate"
+          "Fn::Sub": "${AWS::StackName}-PrimaryCertificate2"
         }
       }
     },
@@ -892,7 +892,7 @@
     },
     "ExternalDomainCertificateArn": {
       "Value": {
-        "Fn::Sub": "${ExternalDomainCertificateARN2}"
+        "Fn::Sub": "${ExternalDomainCertificateARN}"
       },
       "Description": "The certificate corresponding to the primary domain in this VPC.",
       "Export": {
@@ -903,12 +903,12 @@
     },
     "ExternalDomainCertificateArn2": {
       "Value": {
-        "Fn::Sub": "${ExternalDomainCertificateARN}"
+        "Fn::Sub": "${ExternalDomainCertificateARN2}"
       },
       "Description": "The certificate corresponding to the primary domain in this VPC.",
       "Export": {
         "Name": {
-          "Fn::Sub": "${AWS::StackName}-ExternalCertificate"
+          "Fn::Sub": "${AWS::StackName}-ExternalCertificate2"
         }
       }
     },
