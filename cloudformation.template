@@ -10,10 +10,6 @@
       "Description": "The application this VPC will support.",
       "Type": "String"
     },
-    "KeyName": {
-      "Description": "SSH keypair name for access to the bastion host.",
-      "Type": "AWS::EC2::KeyPair::KeyName"
-    },
     "Domain": {
       "Description": "The domain for the bastion host's DNS entry",
       "Type": "String"
@@ -29,68 +25,50 @@
     "ExternalDomainCertificateARN": {
       "Description": "The ARN for the certificate for the domain for external facing assets in this stack.",
       "Type": "String"
-    },
-    "DatadogKey": {
-      "Description": "The datadog API key for monitoring the bastion host.",
-      "Type": "String"
     }
   },
   "Mappings": {
     "RegionMap": {
       "ap-northeast-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-3bd3c45c",
         "AWSAccount": "582318560864"
       },
       "ap-northeast-2": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-e21cc38c",
         "AWSAccount": "600734575887"
       },
       "ap-south-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-10918173",
         "AWSAccount": "718504428378"
       },
       "ap-southeast-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-77af2014",
         "AWSAccount": "114774131450"
       },
       "ap-southeast-2": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-47205e28",
         "AWSAccount": "783225319266"
       },
       "ca-central-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-a7aa15c3",
         "AWSAccount": "985666609251"
       },
       "eu-central-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-82be18ed",
         "AWSAccount": "054676820928"
       },
       "eu-west-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-d7b9a2b1",
         "AWSAccount": "156460612806"
       },
       "eu-west-2": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-ed100689",
         "AWSAccount": "652711504416"
       },
       "sa-east-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-87dab1eb",
         "AWSAccount": "507241528517"
       },
       "us-east-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-a4c7edb2",
         "AWSAccount": "127311923021"
       },
       "us-east-2": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-8a7859ef",
         "AWSAccount": "033677994240"
       },
       "us-west-1": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-327f5352",
         "AWSAccount": "027434742980"
       },
       "us-west-2": {
-        "AmazonLinuxAMIHVMEBSBacked64bit": "ami-6df1e514",
         "AWSAccount": "797873946194"
       }
     }
@@ -180,78 +158,6 @@
         ]
       }
     },
-    "Bastion": {
-      "Type": "AWS::EC2::Instance",
-      "Properties": {
-        "ImageId": {
-          "Fn::FindInMap": [
-            "RegionMap",
-            {
-              "Ref": "AWS::Region"
-            },
-            "AmazonLinuxAMIHVMEBSBacked64bit"
-          ]
-        },
-        "InstanceType": "t3.nano",
-        "KeyName": {
-          "Ref": "KeyName"
-        },
-        "Tags": [
-          {
-            "Key": "Name",
-            "Value": {
-              "Fn::Sub": "${Environment}-${Application}-bastion"
-            }
-          },
-          {
-            "Key": "Environment",
-            "Value": {
-              "Ref": "Environment"
-            }
-          },
-          {
-            "Key": "Application",
-            "Value": {
-              "Ref": "Application"
-            }
-          }
-        ],
-        "NetworkInterfaces": [
-          {
-            "AssociatePublicIpAddress": "true",
-            "DeviceIndex": "0",
-            "GroupSet": [
-              {
-                "Ref": "SecurityGroup"
-              }
-            ],
-            "SubnetId": {
-              "Ref": "SubnetAPub"
-            }
-          }
-        ],
-        "UserData": {
-          "Fn::Base64": {
-            "Fn::Join": [
-              "",
-              [
-                "#!/bin/bash -xe\n",
-                "# Version 1.0\n",
-                "yum -y install aws-cfn-bootstrap aws-cli jq\n",
-                "yum -y update\n",
-                "DD_API_KEY=",
-                {
-                  "Ref": "DatadogKey"
-                },
-                "if [[ '${DatadogKey:=}' != '']];then \n",
-                " bash -c \"$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)\"\n",
-                "fi\n"
-              ]
-            ]
-          }
-        }
-      }
-    },
     "VPC": {
       "Type": "AWS::EC2::VPC",
       "Properties": {
@@ -317,8 +223,9 @@
           },
           {
             "Key": "Name",
-            "Value":{"Fn::Sub": "${Environment}-${Application}-subnet-private-a"}
-
+            "Value": {
+              "Fn::Sub": "${Environment}-${Application}-subnet-private-a"
+            }
           }
         ]
       }
@@ -339,25 +246,26 @@
             }
           ]
         },
-        "Tags":[
-                  {
-                    "Key": "Environment",
-                    "Value": {
-                      "Ref": "Environment"
-                    }
-                  },
-                  {
-                    "Key": "Application",
-                    "Value": {
-                      "Ref": "Application"
-                    }
-                  },
-                  {
-                    "Key": "Name",
-                    "Value":{"Fn::Sub": "${Environment}-${Application}-subnet-public-a"}
-
-                  }
-                ]
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": {
+              "Ref": "Environment"
+            }
+          },
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "Application"
+            }
+          },
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "${Environment}-${Application}-subnet-public-a"
+            }
+          }
+        ]
       }
     },
     "SubnetBPriv": {
@@ -377,24 +285,25 @@
           ]
         },
         "Tags": [
-                  {
-                    "Key": "Environment",
-                    "Value": {
-                      "Ref": "Environment"
-                    }
-                  },
-                  {
-                    "Key": "Application",
-                    "Value": {
-                      "Ref": "Application"
-                    }
-                  },
-                  {
-                    "Key": "Name",
-                    "Value":{"Fn::Sub": "${Environment}-${Application}-subnet-private-b"}
-
-                  }
-                ]
+          {
+            "Key": "Environment",
+            "Value": {
+              "Ref": "Environment"
+            }
+          },
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "Application"
+            }
+          },
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "${Environment}-${Application}-subnet-private-b"
+            }
+          }
+        ]
       }
     },
     "SubnetBPub": {
@@ -414,24 +323,25 @@
           ]
         },
         "Tags": [
-                  {
-                    "Key": "Environment",
-                    "Value": {
-                      "Ref": "Environment"
-                    }
-                  },
-                  {
-                    "Key": "Application",
-                    "Value": {
-                      "Ref": "Application"
-                    }
-                  },
-                  {
-                    "Key": "Name",
-                    "Value":{"Fn::Sub": "${Environment}-${Application}-subnet-public-b"}
-
-                  }
-                ]
+          {
+            "Key": "Environment",
+            "Value": {
+              "Ref": "Environment"
+            }
+          },
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "Application"
+            }
+          },
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "${Environment}-${Application}-subnet-public-b"
+            }
+          }
+        ]
       }
     },
     "SubnetCPriv": {
@@ -451,24 +361,25 @@
           ]
         },
         "Tags": [
-                  {
-                    "Key": "Environment",
-                    "Value": {
-                      "Ref": "Environment"
-                    }
-                  },
-                  {
-                    "Key": "Application",
-                    "Value": {
-                      "Ref": "Application"
-                    }
-                  },
-                  {
-                    "Key": "Name",
-                    "Value":{"Fn::Sub": "${Environment}-${Application}-subnet-private-c"}
-
-                  }
-                ]
+          {
+            "Key": "Environment",
+            "Value": {
+              "Ref": "Environment"
+            }
+          },
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "Application"
+            }
+          },
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "${Environment}-${Application}-subnet-private-c"
+            }
+          }
+        ]
       }
     },
     "SubnetCPub": {
@@ -488,43 +399,44 @@
           ]
         },
         "Tags": [
-                  {
-                    "Key": "Environment",
-                    "Value": {
-                      "Ref": "Environment"
-                    }
-                  },
-                  {
-                    "Key": "Application",
-                    "Value": {
-                      "Ref": "Application"
-                    }
-                  },
-                  {
-                    "Key": "Name",
-                    "Value":{"Fn::Sub": "${Environment}-${Application}-subnet-public-c"}
-
-                  }
-                ]
+          {
+            "Key": "Environment",
+            "Value": {
+              "Ref": "Environment"
+            }
+          },
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "Application"
+            }
+          },
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "${Environment}-${Application}-subnet-public-c"
+            }
+          }
+        ]
       }
     },
     "InternetGateway": {
       "Type": "AWS::EC2::InternetGateway",
       "Properties": {
         "Tags": [
-                  {
-                    "Key": "Environment",
-                    "Value": {
-                      "Ref": "Environment"
-                    }
-                  },
-                  {
-                    "Key": "Application",
-                    "Value": {
-                      "Ref": "Application"
-                    }
-                  }
-                ]
+          {
+            "Key": "Environment",
+            "Value": {
+              "Ref": "Environment"
+            }
+          },
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "Application"
+            }
+          }
+        ]
       }
     },
     "AttachGateway": {
@@ -545,19 +457,19 @@
           "Ref": "VPC"
         },
         "Tags": [
-                  {
-                    "Key": "Environment",
-                    "Value": {
-                      "Ref": "Environment"
-                    }
-                  },
-                  {
-                    "Key": "Application",
-                    "Value": {
-                      "Ref": "Application"
-                    }
-                  }
-                ]
+          {
+            "Key": "Environment",
+            "Value": {
+              "Ref": "Environment"
+            }
+          },
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "Application"
+            }
+          }
+        ]
       }
     },
     "RouteTablePub": {
@@ -567,19 +479,19 @@
           "Ref": "VPC"
         },
         "Tags": [
-                          {
-                            "Key": "Environment",
-                            "Value": {
-                              "Ref": "Environment"
-                            }
-                          },
-                          {
-                            "Key": "Application",
-                            "Value": {
-                              "Ref": "Application"
-                            }
-                          }
-                        ]
+          {
+            "Key": "Environment",
+            "Value": {
+              "Ref": "Environment"
+            }
+          },
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "Application"
+            }
+          }
+        ]
       }
     },
     "RouteIG": {
@@ -668,19 +580,19 @@
           "Ref": "VPC"
         },
         "Tags": [
-                          {
-                            "Key": "Environment",
-                            "Value": {
-                              "Ref": "Environment"
-                            }
-                          },
-                          {
-                            "Key": "Application",
-                            "Value": {
-                              "Ref": "Application"
-                            }
-                          }
-                        ]
+          {
+            "Key": "Environment",
+            "Value": {
+              "Ref": "Environment"
+            }
+          },
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "Application"
+            }
+          }
+        ]
       }
     },
     "NAT": {
@@ -715,33 +627,11 @@
         }
       }
     },
-    "primarydns": {
-      "Type": "AWS::Route53::RecordSet",
-      "Properties": {
-        "HostedZoneName": {
-          "Fn::Sub": "${Domain}."
-        },
-        "Name": {
-          "Fn::Sub": "${Environment}-${Application}-bastion.${Domain}."
-        },
-        "Type": "A",
-        "TTL": "900",
-        "ResourceRecords": [
-          {
-            "Fn::GetAtt": [
-              "Bastion",
-              "PublicIp"
-            ]
-          }
-        ]
-      }
-    },
     "FlowLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
         "LogGroupName": {
           "Fn::Sub": "${Environment}-${Application}-vpc-flowlogs"
-          
         },
         "RetentionInDays": "7"
       }
@@ -813,31 +703,6 @@
     }
   },
   "Outputs": {
-    "BastionIP": {
-      "Value": {
-        "Fn::GetAtt": [
-          "Bastion",
-          "PublicIp"
-        ]
-      },
-      "Description": "The public IP address of the bastion.",
-      "Export": {
-        "Name": {
-          "Fn::Sub": "${AWS::StackName}-BastionIP"
-        }
-      }
-    },
-    "PrimaryDNS": {
-      "Value": {
-        "Fn::Sub": "${Environment}-${Application}-bastion.${Domain}"
-      },
-      "Description": "The public DNS of the bastion host.",
-      "Export": {
-        "Name": {
-          "Fn::Sub": "${AWS::StackName}-PrimaryDNS"
-        }
-      }
-    },
     "PrimaryDomain": {
       "Value": {
         "Fn::Sub": "${Domain}"
